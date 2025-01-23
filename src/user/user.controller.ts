@@ -2,11 +2,12 @@ import { Controller, Get, Post, Body, Res, Param, HttpStatus, NotFoundException,
 import { CreateUserDTO, LoginUserDTO } from './dto/user.dto';
 import { UserService } from './user.service';
 
+//Endpoints relacionados al login
 @Controller('user')
 export class UserController {
     constructor(private userService: UserService){}
 
-    @Get('/users')
+    @Get('/users')//Entrega todos los usuarios
     async getUsers(@Res() res){
         const users = await this.userService.getUsers();
         return res.status(HttpStatus.OK).json({
@@ -14,14 +15,21 @@ export class UserController {
         })
     }
 
-    @Get('/users/:name')
+    @Get('/users/:name') //Entrega usuario por nombre
     async getUser(@Res() res, @Param('name') name){
         const user = await this.userService.getUser(name);
         if (!name) throw new NotFoundException('Usuario no existe');
         return res.status(HttpStatus.OK).json(user)
     }
 
-    @Post('/create')
+    @Get('/public-key')  //Entrega la clave publica
+    async getPublicKey(@Res() res) {
+        console.log(" Ingreso a public key.");
+        //el await es necesario, de lo contrario no lo envia
+        return res.status(HttpStatus.OK).json({ publicKey: await this.userService.getPublicKey()});
+    }
+
+    @Post('/create')  //Crea un usuario
     async createPost(@Res() res, @Body() createUserDTO: CreateUserDTO){
         const user = await this.userService.createUser(createUserDTO)
         return res.status(HttpStatus.OK).json({
@@ -30,26 +38,22 @@ export class UserController {
         })
     }
 
-    @Post('/login')
+    @Post('/login')  //Ingresar
     async loginUser(@Res() res, @Body() createUserDTO: CreateUserDTO){
         try {
             const login = await this.userService.login(createUserDTO);
-            console.log(1);
             return res.status(HttpStatus.OK).json({
-                message: 'Ingreso correcto.',
-                login: login,
+                message: 'Ingreso del usuario '+createUserDTO.nickname+' correcto',
+                session: true
             });
         } catch (error) {
             // Manejar error de credenciales inválidas
-            console.log(2);
-            if (error.status === HttpStatus.UNAUTHORIZED) {
+            if (error.status === HttpStatus.UNAUTHORIZED || HttpStatus.INTERNAL_SERVER_ERROR) {
                 return res.status(HttpStatus.OK).json({
                     message: 'Usuario incorrecto, intentelo nuevamente.',
-                    //login: login,
+                    session: false
                 })
             }
-            console.log(3);
-            throw new HttpException(error.message, error.status || HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
