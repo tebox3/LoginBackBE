@@ -50,7 +50,10 @@ export class UserService {
     async login(createUserDTO: CreateUserDTO): Promise<User>{
         //Busca la cuenta con el nombre de usuario y desencripta la contraseña para compararlas
         const { nickname, pass } = createUserDTO;
-        const user = await this.userModel.findOne({name: nickname}).exec();
+        const user = await this.userModel.findOne({name: nickname});
+        //console.log(user);
+        //console.log("PRIVATE KEY: ", this.privateKey);
+        //console.log("PUBLIC KEY: ", this.publicKey);
         this.newpass =  this.decryptWithPrivateKey(pass);
         if (!user || !(await bcrypt.compare(this.newpass, user.pass))) {
             console.log("Error!!!!, usuario ",nickname," incorrecto");
@@ -65,9 +68,9 @@ export class UserService {
     }
 
     decryptWithPrivateKey(data: string): string {
-
         //Desencriptar la contraseña
         try{
+            //console.log('PRIVATE KEY SERVICES::: ', this.privateKey);
             const buffer = Buffer.from(data, 'base64');
             const decrypted = privateDecrypt({
                 key: this.privateKey,
@@ -77,5 +80,5 @@ export class UserService {
         }catch(error){
             console.log("ERROR: ", error);
         }
-        }
+    }
 }

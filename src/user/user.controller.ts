@@ -16,11 +16,20 @@ export class UserController {
     }
 
     @Get('/users/:name') //Entrega usuario por nombre
-    async getUser(@Res() res, @Param('name') name){
+    async getUser(@Res() res, @Param('name') name: string) {
         const user = await this.userService.getUser(name);
-        if (!name) throw new NotFoundException('Usuario no existe');
-        return res.status(HttpStatus.OK).json(user)
+        //console.log("NOMBRE: ",name);
+        //console.log("RESPUESTA SERVICE: ", user);
+        console.log("SSSSSSSSSSSSSSSSSSSSS");
+
+        if (!user) {
+            console.log("SSSSSSSSSSSSSSSSSSSSS");
+            throw new NotFoundException(`Usuario con nombre "${name}" no existe`);
+        }
+        //console.log("se enviara esta respuesta: ", res.status(HttpStatus.OK).json(user));
+        return res.status(HttpStatus.OK).json(user);
     }
+
 
     @Get('/public-key')  //Entrega la clave publica
     async getPublicKey(@Res() res) {
